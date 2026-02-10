@@ -1,13 +1,14 @@
-from decimal import Decimal
 from typing import List, Optional, Literal
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy import select, func, desc, asc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
+from config.dependencies import get_current_user, get_current_admin
 from database.db import get_db
+from database.models.accounts import UserModel, UserGroupEnum
 from database.models.movies import MovieModel, CertificationModel, GenreModel, StarModel, DirectorModel
 from schemas.movies import MovieListResponseSchema, MovieListItemSchema, MovieCreateSchema, MovieBaseSchema, \
     MovieDetailSchema, MovieUpdateSchema, StarSchema, GenreSchema, DirectorSchema, \
@@ -113,6 +114,7 @@ async def get_all_movies(
 async def create_movie(
         movie_data: MovieCreateSchema,
         db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 )-> MovieDetailSchema:
     existing_stmt = select(MovieModel).where(
         (MovieModel.name == movie_data.name),
@@ -235,6 +237,7 @@ async def get_movie_by_id(
 async def delete_movie(
         movie_id: int,
         db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     existing_stmt = select(MovieModel).where(MovieModel.id == movie_id)
     existing_result = await db.execute(existing_stmt)
@@ -262,6 +265,7 @@ async def update_movie(
         movie_id: int,
         movie_data: MovieUpdateSchema,
         db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     existing_stmt = select(MovieModel).where(MovieModel.id == movie_id)
     existing_result = await db.execute(existing_stmt)
@@ -301,7 +305,8 @@ async def get_stars(db: AsyncSession = Depends(get_db)):
 @router.post("/stars/", response_model=StarSchema)
 async def create_star(
         star_data: StarGenreDirectorCreateSchema,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     stmt = select(StarModel).where(StarModel.name == star_data.name)
     result = await db.execute(stmt)
@@ -323,7 +328,8 @@ async def create_star(
 async def update_star(
         star_id: int,
         star_data: StarSchema,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     stmt = select(StarModel).where(StarModel.id == star_id)
     result = await db.execute(stmt)
@@ -345,7 +351,8 @@ async def update_star(
 @router.delete("/stars/{star_id}/")
 async def delete_star(
         star_id: int,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     stmt = select(StarModel).where(StarModel.id == star_id)
     result = await db.execute(stmt)
@@ -393,7 +400,8 @@ async def get_genres(db: AsyncSession = Depends(get_db)):
 @router.post("/genres/", response_model=GenreSchema)
 async def create_genre(
         genre_data: StarGenreDirectorCreateSchema,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     stmt = select(GenreModel).where(GenreModel.name == genre_data.name)
     result = await db.execute(stmt)
@@ -415,7 +423,8 @@ async def create_genre(
 async def update_genre(
         genre_id: int,
         genre_data: StarGenreDirectorCreateSchema,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     stmt = select(GenreModel).where(GenreModel.id == genre_id)
     result = await db.execute(stmt)
@@ -434,7 +443,7 @@ async def update_genre(
 
 
 @router.delete("/genres/{genre_id}/")
-async def delete_genre(genre_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_genre(genre_id: int, db: AsyncSession = Depends(get_db), current_user: UserModel = Depends(get_current_admin)):
     stmt = select(GenreModel).where(GenreModel.id == genre_id)
     result = await db.execute(stmt)
     genre = result.scalar_one_or_none()
@@ -463,7 +472,8 @@ async def get_directors(db: AsyncSession = Depends(get_db)):
 @router.post("/directors/", response_model=DirectorSchema)
 async def create_director(
         director_data: StarGenreDirectorCreateSchema,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     stmt = select(DirectorModel).where(DirectorModel.name == director_data.name)
     result = await db.execute(stmt)
@@ -485,7 +495,8 @@ async def create_director(
 async def update_director(
         director_id: int,
         director_data: DirectorSchema,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: UserModel = Depends(get_current_admin)
 ):
     stmt = select(DirectorModel).where(DirectorModel.id == director_id)
     result = await db.execute(stmt)
@@ -504,7 +515,7 @@ async def update_director(
 
 
 @router.delete("/directors/{director_id}/")
-async def delete_director(director_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_director(director_id: int, db: AsyncSession = Depends(get_db), current_user: UserModel = Depends(get_current_admin)):
     stmt = select(DirectorModel).where(DirectorModel.id == director_id)
     result = await db.execute(stmt)
     director = result.scalar_one_or_none()
