@@ -1,24 +1,31 @@
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+import bcrypt
 from jose import jwt, JWTError
-from passlib.context import CryptContext
+from dotenv import load_dotenv
 
-SECRET_KEY = "7c3a8d9e2b1f4a6c8d9e0f2a5b7c9d1e3f5a7c9e1b3d5f7a9c1e3b5d7f9a1c3e"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+load_dotenv()
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
 class SecurityUtils:
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
-        return pwd_context.verify(plain_password, hashed_password)
+        return bcrypt.checkpw(
+            plain_password.encode('utf-8'),
+            hashed_password.encode('utf-8')
+        )
 
     @staticmethod
     def get_password_hash(password: str) -> str:
-        return pwd_context.hash(password)
+        pwd_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_bytes = bcrypt.hashpw(pwd_bytes, salt)
+        return hashed_bytes.decode('utf-8')
 
     @staticmethod
     def create_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -41,6 +48,5 @@ class SecurityUtils:
             return payload
         except JWTError:
             return None
-
 
 security = SecurityUtils()
