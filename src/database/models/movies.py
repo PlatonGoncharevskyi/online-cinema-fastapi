@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import TYPE_CHECKING, List
 
 import uuid as uuid_pkg
 from sqlalchemy import Integer, String, ForeignKey, Column, Table, Float, Text, UUID, DECIMAL, UniqueConstraint
@@ -6,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.db import Base
 
+if TYPE_CHECKING:
+    from .comments import CommentModel
 
 MoviesGenresModel = Table(
     "movies_genres",
@@ -96,6 +99,11 @@ class MovieModel(Base):
 
     certification: Mapped["CertificationModel"] = relationship("CertificationModel", back_populates="movies")
 
+    comments: Mapped[List["CommentModel"]] = relationship(
+        "CommentModel",
+        back_populates="movie",
+        cascade="all, delete-orphan"
+    )
 
     genres: Mapped[list["GenreModel"]] = relationship(
         "GenreModel",

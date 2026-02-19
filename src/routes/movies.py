@@ -529,3 +529,5 @@ async def delete_director(director_id: int, db: AsyncSession = Depends(get_db), 
     except IntegrityError:
         await db.rollback()
         raise HTTPException(status_code=400, detail="Error deleting director")
+
+

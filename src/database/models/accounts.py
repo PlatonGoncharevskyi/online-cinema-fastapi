@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime, date, timedelta, timezone
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import (
     ForeignKey,
@@ -20,6 +20,10 @@ from sqlalchemy.orm import (
 )
 
 from database.db import Base
+
+
+if TYPE_CHECKING:
+    from .comments import CommentModel
 
 
 class UserGroupEnum(str, enum.Enum):
@@ -76,6 +80,12 @@ class UserModel(Base):
 
     user_profile: Mapped[Optional["UserProfileModel"]] = relationship(
         "UserProfileModel",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+    comments: Mapped[List["CommentModel"]] = relationship(
+        "CommentModel",
         back_populates="user",
         cascade="all, delete-orphan"
     )

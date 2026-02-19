@@ -22,6 +22,7 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 from database.models import accounts # noqa: F401
 from database.models import movies # noqa: F401
+from database.models import comments # noqa: F401
 
 from database.db import Base
 target_metadata = Base.metadata
